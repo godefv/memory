@@ -1,0 +1,3 @@
+[submodule "extern/godefv/error_checking"]
+	path = extern/godefv/error_checking
+	url = https://github.com/godefv/error_checking.git
