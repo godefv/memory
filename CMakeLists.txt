@@ -3,6 +3,7 @@ project(godefv_memory CXX)
 
 add_subdirectory(extern/godefv/error_checking)
 include_directories("extern")
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 godefv_add_module(memory)
 target_compile_features(godefv_memory INTERFACE cxx_std_14)
