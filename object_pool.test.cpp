@@ -2,7 +2,7 @@
 #include<godefv/error_checking/check_equal/fundamental_types.h>
 
 int main(){
-	/** Default ObjectPool. */
+	/** Default object pool. */
 	{
 		godefv::object_pool_t<int> myObjectPool;
 
@@ -17,7 +17,7 @@ int main(){
 		check_equal(myObjectPool.size(), size_t(0)).on_error(godefv::return_status_t::exit{});
 	}
 
-	/** The pool recycles the deleted pointers. */
+	/** Non-default object pool. */
 	{
 		godefv::object_pool_t<int, std::allocator, 10> myObjectPool;
 
@@ -38,49 +38,49 @@ int main(){
 
 		check_equal(myObjectPool.size(), size_t(0)).on_error(godefv::return_status_t::exit{});
 
-		auto myValue_1 = myObjectPool.make_unique();
+		auto myValue_1 = myObjectPool.make_unique(-1);
 		check_equal(myObjectPool.size(), size_t(1)).on_error(godefv::return_status_t::exit{});
+		check_equal(*myValue_1, -1).on_error(godefv::return_status_t::exit{});
 
 		{
-			auto myLocalValue = myObjectPool.make_unique(-1);
+			auto myLocalValue = myObjectPool.make_unique();
 			check_equal(myObjectPool.size(), size_t(2)).on_error(godefv::return_status_t::exit{});
-			check_equal(*myLocalValue, -1).on_error(godefv::return_status_t::exit{});
+			check_equal(*myLocalValue, 0).on_error(godefv::return_status_t::exit{});
 		}
 
 		auto myValue_2 = myObjectPool.make_unique();
 		check_equal(myObjectPool.size(), size_t(2)).on_error(godefv::return_status_t::exit{});
 	}
 
-	/** The size of the pool increase dynamically when the pool is size_t(f). */
+	/** The size of the pool increases dynamically when the pool is size_t(f). */
 	{
 		godefv::object_pool_t<int, std::allocator, 2> myObjectPool;
 
-		check_equal(myObjectPool.size(), size_t(0)).on_error(godefv::return_status_t::exit{});
-
 		auto myValue_1 = myObjectPool.make_unique(0);
-		check_equal(myObjectPool.size(), size_t(1)).on_error(godefv::return_status_t::exit{});
-		check_equal(*myValue_1, 0).on_error(godefv::return_status_t::exit{});
-
 		auto myValue_2 = myObjectPool.make_unique(1);
-		check_equal(myObjectPool.size(), size_t(2)).on_error(godefv::return_status_t::exit{});
-		check_equal(*myValue_2, 1).on_error(godefv::return_status_t::exit{});
-
 		auto myValue_3 = myObjectPool.make_unique(2);
-		check_equal(myObjectPool.size(), size_t(3)).on_error(godefv::return_status_t::exit{});
+		check_equal(myObjectPool.size()    , size_t(3)).on_error(godefv::return_status_t::exit{});
+		check_equal(myObjectPool.capacity(), size_t(4)).on_error(godefv::return_status_t::exit{});
+		check_equal(*myValue_1, 0).on_error(godefv::return_status_t::exit{});
+		check_equal(*myValue_2, 1).on_error(godefv::return_status_t::exit{});
 		check_equal(*myValue_3, 2).on_error(godefv::return_status_t::exit{});
 
 		{
 			auto myLocalValue_1 = myObjectPool.make_unique(-1);
-			check_equal(myObjectPool.size(), size_t(4)).on_error(godefv::return_status_t::exit{});
+			auto myLocalValue_2 = myObjectPool.make_unique(-2);
+			check_equal(myObjectPool.size()    , size_t(5)).on_error(godefv::return_status_t::exit{});
+			check_equal(myObjectPool.capacity(), size_t(6)).on_error(godefv::return_status_t::exit{});
 			check_equal(*myLocalValue_1, -1).on_error(godefv::return_status_t::exit{});
-
-			auto myLocalValue_2 = myObjectPool.make_unique(-1);
-			check_equal(myObjectPool.size(), size_t(5)).on_error(godefv::return_status_t::exit{});
-			check_equal(*myLocalValue_2, -1).on_error(godefv::return_status_t::exit{});
+			check_equal(*myLocalValue_2, -2).on_error(godefv::return_status_t::exit{});
 		}
 
+		// For now: the capacity never decreases.
 		auto myValue_4 = myObjectPool.make_unique(3);
-		check_equal(myObjectPool.size(), size_t(4)).on_error(godefv::return_status_t::exit{});
+		check_equal(myObjectPool.size()    , size_t(4)).on_error(godefv::return_status_t::exit{});
+		check_equal(myObjectPool.capacity(), size_t(6)).on_error(godefv::return_status_t::exit{});
+		check_equal(*myValue_1, 0).on_error(godefv::return_status_t::exit{});
+		check_equal(*myValue_2, 1).on_error(godefv::return_status_t::exit{});
+		check_equal(*myValue_3, 2).on_error(godefv::return_status_t::exit{});
 		check_equal(*myValue_4, 3).on_error(godefv::return_status_t::exit{});
 	}
 
@@ -95,35 +95,9 @@ int main(){
 		godefv::object_pool_t<test_t, std::allocator, 10> myObjectPool;
 
 		int i = 0;
-		myObjectPool.make_unique(&i);
+		myObjectPool.make_unique(&i); //temporary return value is destroyed immediately
 
 		check_equal(i, 34).on_error(godefv::return_status_t::exit{});
-	}
-
-	/** The capacity of the object_pool_t increases. */
-	{
-		godefv::object_pool_t<int, std::allocator, 2> myObjectPool;
-
-		auto myValue_1 = myObjectPool.make_unique(0);
-		check_equal(myObjectPool.capacity(), size_t(2)).on_error(godefv::return_status_t::exit{});
-
-		auto myValue_2 = myObjectPool.make_unique(1);
-		check_equal(myObjectPool.capacity(), size_t(2)).on_error(godefv::return_status_t::exit{});
-
-		auto myValue_3 = myObjectPool.make_unique(2);
-		check_equal(myObjectPool.capacity(), size_t(4)).on_error(godefv::return_status_t::exit{});
-
-		{
-			auto myLocalValue_1 = myObjectPool.make_unique(-1);
-			check_equal(myObjectPool.capacity(), size_t(4)).on_error(godefv::return_status_t::exit{});
-
-			auto myLocalValue_2 = myObjectPool.make_unique(-1);
-			check_equal(myObjectPool.capacity(), size_t(6)).on_error(godefv::return_status_t::exit{});
-		}
-
-		// For now: the capacity never decreases.
-		auto myValue_4 = myObjectPool.make_unique(3);
-		check_equal(myObjectPool.capacity(), size_t(6)).on_error(godefv::return_status_t::exit{});
 	}
 
 	/** The pool recycles the deleted pointers. */
